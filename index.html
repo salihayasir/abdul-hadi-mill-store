@@ -378,6 +378,13 @@ table.kv td.tbc{color:var(--ink-3)}
 .brand{display:grid;gap:8px;align-content:start;padding:24px;background:var(--card);border:1px solid var(--line);border-radius:var(--r3);transition:border-color .25s,transform .25s var(--ease)}
 .brand:hover{border-color:var(--line-2);transform:translateY(-4px)}
 .brand b{font-size:20px;font-weight:700}
+.brand .logo-slot{display:flex;align-items:center;min-height:56px;color:var(--ink)}
+.logo-slot img{max-height:48px;max-width:160px;object-fit:contain}
+.logo-slot img + b{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.brand .n{display:inline-flex;align-items:center;gap:4px}
+.brand .n .ic{width:16px;height:16px;transition:transform .25s var(--ease)}
+.brand:hover .n .ic{transform:translateX(4px)}
+.more-b{border-style:dashed;background:var(--orange-tint)}
 .brand span{font-size:14px;color:var(--ink-3)}
 .brand .n{margin-top:8px;color:var(--orange-ink);font-weight:600}
 .contact{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;margin-top:40px}
@@ -1014,7 +1021,7 @@ function rangeCard(c,i){
   return `<article class="card range rv" style="--i:${i%8}">
     <span class="shot"><img class="ok" src="${REFCAT[c.slug]||CATIMG[c.img]}" alt="" loading="lazy" width="400" height="300"></span>
     <div class="bd"><h3><a href="#cat-${c.slug}">${esc(c.name)}</a></h3><span class="meta">${esc(c.blurb)}</span>
-      <span class="pn">${n?n+' listed':'Ask for stock'}</span></div>
+      <span class="pn">All sizes and brands</span></div>
     <div class="ft"><a class="add" href="#cat-${c.slug}" tabindex="-1" aria-hidden="true">${ic('box')}<span>View Range</span></a><span class="ask-ic nohit" aria-hidden="true">${ic('right')}</span></div>
   </article>`;
 }
@@ -1050,7 +1057,7 @@ function facetDefs(c){
     "conveyor-belts":[["material","Material"],["surface","Surface"]],
     "endless-flat":[["btype2","Belt type"],["surface","Surface"]]})[c] || [];
 }
-const opt = (attr,val,label,n,on) => `<button class="opt" data-f="${attr}" data-v="${esc(val)}" aria-pressed="${on}" ${n?'':'disabled'}><span class="bx"></span>${esc(label)}<span class="c">${n}</span></button>`;
+const opt = (attr,val,label,n,on) => `<button class="opt" data-f="${attr}" data-v="${esc(val)}" aria-pressed="${on}"><span class="bx"></span>${esc(label)}</button>`;
 function viewProducts(){
   let pool = state.q ? searchProducts(state.q).map(r=>r.p) : PRODUCTS.slice();
   if(state.cat) pool = pool.filter(p=>p.cat===state.cat);
@@ -1164,10 +1171,15 @@ function viewIdentify(preId){
   </div></div></div>`;
 }
 /* ---------- BRANDS ---------- */
+function brandMark(b){
+  const n = b.name.split(' / ')[0];
+  return `<span class="logo-slot"><img src="logos/${b.slug}.png" alt="${esc(n)} logo" loading="lazy" onerror="this.remove()"><b>${esc(n)}</b></span>`;
+}
 function viewBrands(){
-  return `<div class="view">${pbanner([["Brands"]],"Brands","Brands We Stock","The makes we hold on the shelf. We are not an authorised distributor for any of them, and we tell you honestly what a part is.",REF.bearing)}
-  <div class="wrap"><div class="brands">${BRANDS.map((b,i)=>{const n=PRODUCTS.filter(p=>p.brand===b.slug).length;
-      return `<a class="brand rv" style="--i:${i}" href="#brand-${b.slug}"><b>${esc(b.name)}</b><span>${esc(b.note)}</span><span class="n">${n} listed</span></a>`;}).join('')}</div>
+  const list = BRANDS.filter(b=>b.slug!=='unbranded');
+  return `<div class="view">${pbanner([["Brands"]],"Brands","All Belt Types, All Major Brands","We deal in every type of belt and bearing from all major brands. If your brand is not shown here, send us the part number and we will arrange it.",REF.bearing)}
+  <div class="wrap"><div class="brands">${list.map((b,i)=>`<a class="brand rv" style="--i:${i}" href="#brand-${b.slug}">${brandMark(b)}<span>${esc(b.note)}</span><span class="n">View products ${ic('right')}</span></a>`).join('')}
+    <a class="brand more-b rv" style="--i:${list.length}" href="${waLink("Hello, I need a belt from a brand that is not listed on your website.\nBrand: \nPart number: \nCity: ")}" target="_blank" rel="noopener"><b>Any Other Brand</b><span>Need a brand not shown here? Send the part number and we will arrange it.</span><span class="n">Ask on WhatsApp ${ic('right')}</span></a></div>
     ${ASK}</div></div>`;
 }
 function viewHome(){
@@ -1341,7 +1353,7 @@ function wireProduct(){
     if(!isNaN(v)){
       extra = "Size: " + v + " " + r.unit + (w ? ", width " + w + " mm" : "");
       if(r.open || (v>=r.min && v<=r.max)){ msg.classList.add('ok'); msg.textContent = r.open ? "Cut to order. We confirm the price on WhatsApp." : "In our range. We confirm stock on WhatsApp."; }
-      else { msg.classList.add('err'); sz.setAttribute('aria-invalid','true'); msg.textContent = "Outside the listed " + r.min + " to " + r.max + " " + r.unit + " range. Message us anyway, we may be able to arrange it."; }
+      else { msg.classList.add('err'); sz.setAttribute('aria-invalid','true'); msg.textContent = "Outside the usual " + r.min + " to " + r.max + " " + r.unit + " range. Message us anyway, we may be able to arrange it."; }
       if(dot){ const pc = Math.max(0,Math.min(100,(v-r.min)/(r.max-r.min)*100)); dot.style.left = pc+"%"; dot.style.opacity = 1; }
     } else if(dot) dot.style.opacity = 0;
     wa.href = waLink(productMsg(p, extra));
@@ -1390,7 +1402,7 @@ function wireSearch(inp, box){
     const q = inp.value.trim(); if(!q){ close(); return; }
     const r = searchProducts(q).slice(0,5);
     box.innerHTML = (r.length ? r.map(({p},k)=>`<a href="#p-${p.id}" role="option" id="${box.id}-o${k}"><span class="th">${imgOf(p)?`<img src="${imgOf(p)}" alt="">`:dia(p.dia,32)}</span><span><b>${esc(p.pn||p.name)}</b><small>${esc(p.pn?p.name:CAT[p.cat].name)}</small></span></a>`).join('')
-      : `<p class="none" role="presentation">No listed match. Press Enter to see options, or send us a photo.</p>`) + `<a class="all" href="#products" data-q role="option" id="${box.id}-oall">See all results for "${esc(q)}"</a>`;
+      : `<p class="none" role="presentation">Not in the online list yet. We can still get it, press Enter or send us a photo.</p>`) + `<a class="all" href="#products" data-q role="option" id="${box.id}-oall">See all results for "${esc(q)}"</a>`;
     box.classList.add('open'); inp.setAttribute('aria-expanded','true'); sel=-1;
   };
   const submit = () => { state = {cat:null,brand:null,facets:{},q:inp.value.trim()}; close(); if(location.hash==="#products") rerenderProducts(); else location.hash="products"; inp.blur(); };
@@ -1440,7 +1452,7 @@ function toast(msg, action, fn){
 }
 /* products dropdown */
 const dd = $('#ddProducts');
-$('#ddMenu').innerHTML = `<a href="#products"><img src="${REF.hero}" alt="">All products<em>${PRODUCTS.length}</em></a>` + CATS.map(c=>`<a href="#cat-${c.slug}"><img src="${REFCAT[c.slug]||CATIMG[c.img]}" alt="">${esc(c.name)}<em>${count(c.slug)||''}</em></a>`).join('');
+$('#ddMenu').innerHTML = `<a href="#products"><img src="${REF.hero}" alt="">All Products</a>` + CATS.map(c=>`<a href="#cat-${c.slug}"><img src="${REFCAT[c.slug]||CATIMG[c.img]}" alt="">${esc(c.name)}</a>`).join('');
 const ddBtn = dd.querySelector('button');
 const ddSet = o => { dd.classList.toggle('open',o); ddBtn.setAttribute('aria-expanded',o); };
 ddBtn.addEventListener('click',()=>ddSet(!dd.classList.contains('open')));
