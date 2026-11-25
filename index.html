@@ -189,11 +189,12 @@ nav.main>a:hover,.dd>button:hover,nav.main>a[aria-current=page],.dd>button[aria-
 .card{position:relative;display:flex;flex-direction:column;background:var(--card);border:1px solid var(--line);border-radius:var(--r3);overflow:hidden;transition:border-color .25s,transform .25s var(--ease)}
 .card:hover{border-color:var(--line-2);transform:translateY(-4px)}
 .shot{position:relative;display:grid;place-items:center;aspect-ratio:4/3;margin:8px 8px 0;border-radius:var(--r2);background:#E9EBEE;overflow:hidden;color:var(--ink-3)}
-.shot img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s,transform .6s var(--ease)}
+.shot img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s,transform .6s var(--ease)}
 .shot img.ok{opacity:1}
 .shot.loading::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent);transform:translateX(-100%);animation:shimmer 1.2s infinite}
 .card:hover .shot img{transform:scale(1.06)}
 .shot svg{width:60%;max-height:70%}
+.shot>.ic,.shot>svg{position:relative}
 @keyframes shimmer{to{transform:translateX(100%)}}
 .card .bd{display:flex;flex-direction:column;gap:4px;padding:16px 16px 12px;flex:1}
 .card h3{font-size:16px;font-weight:600}
